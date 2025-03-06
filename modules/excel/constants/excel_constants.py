@@ -1,0 +1,1 @@
+EXCEL_LINE_BREAK = "\r\n"
