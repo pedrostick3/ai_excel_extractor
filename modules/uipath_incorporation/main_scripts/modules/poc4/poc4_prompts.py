@@ -35,18 +35,3 @@ Additional Rules:
 1. If there is no column that makes sense, that column should be "".
 
 {format_instructions}"""
-
-EXTRACTION_PROMPT = """With the help of the parametrization template: "{template_row}".
-Extract all data rows as CSV with these standardized columns: "Nome;Quota;NIF;Número de Sócio;Taxa;Mês da Contribuição".
-
-Rules:
-1. Map columns using the template mappings
-2. Use empty fields (;;) for missing values
-3. Maintain original data formatting
-4. If unsure about a column, try to infer from header names
-
-Example:
-- parametrization template: "Template;Nome;Quota;Pivot;Sheet;NIF;Nsocio;SeparadorMilhar;SeparadorDecimal;Moeda;Remover linhas com;RemoverLinhaFinal;IgnorarLinhasSemValorDesconto;MesReferencia;Taxa\nFP;Nome;Valor do Desconto;A1;FP;NIF;;;.;;;;;Mês referência;Taxa de Desconto"
-- output CSV: "Nome;Quota;NIF;Número de Sócio;Taxa;Mês da Contribuição\nEstela Cardoso;8.54;254698754;;0.5;202409"
-
-{format_instructions}"""

@@ -130,8 +130,6 @@ def main():
         
         results = PoC4Implementation.run(
             input_files=input_files,
-            # TODO correr 1x aqui e no uipath_incorporation
-            # TODO remover o temporary_document_agent
             #update_parametrization_vector_db=True,
         )
         print(f"Results: {results}")

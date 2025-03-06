@@ -32,6 +32,7 @@ ZUKIJOURNEY_MODEL = "gpt-4o-mini" # https://proxy.blackgaypornis.fun/v1/models
 
 # OpenAI Configs
 OPENAI_API_KEY = "<your_key>"
+OPENAI_EMBEDDING_MODEL = "text-embedding-3-small" # https://platform.openai.com/docs/models OR https://openai.com/api/pricing
 OPENAI_FINE_TUNING_BASE_MODEL = "gpt-4o-mini-2024-07-18" # https://platform.openai.com/docs/models OR https://openai.com/api/pricing
 OPENAI_FINE_TUNING_MODEL_17_01_2025 = "ft:gpt-4o-mini-2024-07-18:inspireit::AqjmD7gd" # Can be found in https://platform.openai.com/finetune/. It's the name of the model or you can check too in the 'Output model' propriety.
 OPENAI_FINE_TUNING_MODEL_28_01_2025 = "ft:gpt-4o-mini-2024-07-18:inspireit::AuiodsIl" # Can be found in https://platform.openai.com/finetune/. It's the name of the model or you can check too in the 'Output model' propriety.

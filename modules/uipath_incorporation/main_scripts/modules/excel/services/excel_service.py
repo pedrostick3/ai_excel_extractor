@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 from io import StringIO
 from difflib import SequenceMatcher
+from modules.poc4.constants.poc4_constants import PoC4Constants
 
 class ExcelService:
     """
@@ -360,8 +361,8 @@ class ExcelService:
     
     @staticmethod
     def map_parametrization_to_output(
-        parametrization: str = '"Template";"Nome";"Quota";"Pivot";"Sheet";"NIF";"Nsocio";"SeparadorMilhar";"SeparadorDecimal";"Moeda";"Remover linhas com";"RemoverLinhaFinal";"IgnorarLinhasSemValorDesconto";"MesReferencia";"Taxa"\n"FP";"Nome";"Valor do Desconto";"A1";"FP";"NIF";;;".";;;;;"Mês referência";"Taxa de Desconto"',
-        output_parametrization: str = 'Nome;Quota;NIF;Número de Sócio;Taxa;Mês da Contribuição\r\nNome;Quota;NIF;Nsocio;Taxa;MesReferencia',
+        parametrization: str,
+        output_parametrization: str = PoC4Constants.OUTPUT_PARAMETRIZATION_MAP,
         delimiter:str = ";",
         encoding: str = 'utf-8-sig',
         change_nan_to_empty_string = True,
@@ -410,3 +411,151 @@ class ExcelService:
             to_return[output_col] = str(value) if value is not None else ""
 
         return to_return
+
+    @staticmethod
+    def extract_standardized_data(
+        csv_path: str,
+        csv_mapping_template: dict,
+        excel_header_row_index: int = None,
+        sep: str = ';',
+        encoding: str = 'utf-8-sig',
+        strip_and_case_insensitive: bool = True,
+        append_row_if_higher_than: int = 2,
+        add_csv_mapping_template_to_last_column: bool = True,
+    ) -> str:
+        """
+        Extracts data from a CSV file and maps it to standardized columns using the provided mapping template.
+
+        Args:
+            csv_path (str): Path to the CSV file.
+            csv_mapping_template (dict): Dictionary with standardized column names as keys and original column names as values.
+            excel_header_row_index (int, optional): Index of the Excel header row. Defaults to None.
+            sep (str, optional): Delimiter for CSV file. Defaults to ';'.
+            encoding (str, optional): Encoding for CSV file. Defaults to 'utf-8-sig'.
+            strip_and_case_insensitive (bool, optional): Whether to strip whitespace and use case-insensitive column matching. Defaults to True.
+            append_row_if_higher_than (int, optional): Append the extracted data to the CSV if the number of rows in the extracted data is higher than the specified threshold. Defaults to 2.
+            add_csv_mapping_template_to_last_column (bool, optional): Whether to add the CSV mapping template as a new last column. Defaults to True.
+
+        Returns:
+            str: CSV string with standardized columns and extracted data.
+        """
+        if not csv_path:
+            logging.error("extract_standardized_data() - csv_path is empty.")
+            raise ValueError("extract_standardized_data() - csv_path is empty.") 
+
+        try:
+            original_df = pd.read_csv(csv_path, sep=sep, encoding=encoding, header=excel_header_row_index)
+        except Exception as e:
+            logging.error(f"Error reading CSV file: {e}")
+            raise
+        
+        column_map = {}
+        for col in original_df.columns:
+            processed_name = col.strip().lower() if strip_and_case_insensitive else col
+            column_map[processed_name] = col
+
+        standardized_data = []
+
+        for index, row in original_df.iterrows():
+            standardized_row = {}
+            for standardized_col, original_col in csv_mapping_template.items():
+                value = ""
+                if original_col:
+                    lookup_col = original_col.strip().lower() if strip_and_case_insensitive else original_col
+                    
+                    if lookup_col in column_map:
+                        actual_col = column_map[lookup_col]
+                        raw_value = row[actual_col]
+                        
+                        if pd.notna(raw_value):
+                            if isinstance(raw_value, float) and raw_value.is_integer():
+                                value = int(raw_value)
+                            else:
+                                value = raw_value
+                                
+                            if isinstance(value, str):
+                                value = value.strip()
+                    else:
+                        logging.warning(f"Original column '{original_col}' not found in CSV columns")
+                        
+                standardized_row[standardized_col] = value
+
+            non_empty_count = sum(1 for v in standardized_row.values() if v not in ["", None])
+            if non_empty_count > append_row_if_higher_than:
+                standardized_data.append(standardized_row)
+
+        if add_csv_mapping_template_to_last_column and standardized_data:
+            # Create a new column and add the mapping template to the first row
+            for i, row in enumerate(standardized_data):
+                if i == 0:  # Only add to the first row
+                    row["CSV_MAPPING_TEMPLATE"] = str(csv_mapping_template)
+                else:
+                    row["CSV_MAPPING_TEMPLATE"] = ""  # Leave empty for other rows
+
+        standardized_df = pd.DataFrame(standardized_data)
+
+        return standardized_df.to_csv(index=False, sep=sep, encoding=encoding, lineterminator='\r\n')
+    
+    @staticmethod
+    def save_extracted_data_to_master_file(
+        master_file_path: str,
+        csv_data: str,
+        csv_data_column_sep: str = ';',
+        file_extracted: str = None, 
+        add_csv_mapping_template_to_last_column: bool = True,
+    ):
+        """
+        Save the extracted CSV data to the master Excel file.
+
+        Args:
+            master_file_path (str): Path to the master Excel file.
+            csv_data (str): CSV-formatted string containing the extracted data.
+            csv_data_column_sep (str): Separator used in the CSV data.
+            file_extracted (str): Path to the file containing the extracted data.
+            add_csv_mapping_template_to_last_column (bool): Whether to add the CSV mapping template to the last column.
+        """
+        try:
+            master_df = pd.read_excel(master_file_path)
+        except FileNotFoundError:
+            master_df = pd.DataFrame(columns=PoC4Constants.OUTPUT_COLUMNS)
+
+        rows = csv_data.strip().split('\r\n')
+        header = rows[0].split(csv_data_column_sep)  # Base Header: Nome,Quota,NIF,Número de Sócio,Taxa,Mês da Contribuição
+        data_rows = rows[1:]  # Data rows
+
+        expected_columns = PoC4Constants.OUTPUT_COLUMNS.copy()
+        if add_csv_mapping_template_to_last_column and "CSV_MAPPING_TEMPLATE" in header:
+            if file_extracted:
+                expected_columns.append("FILE_NAME")
+            expected_columns.append("CSV_MAPPING_TEMPLATE")
+
+        new_data = []
+        filename_already_inserted = False
+        for row in data_rows:
+            if not row:
+                continue  # Skip empty rows
+            
+            values = row.split(csv_data_column_sep)
+            while len(values) < len(header):
+                values.append("")
+            
+            row_dict = {}
+            for col in expected_columns:
+                if col == "FILE_NAME" and not filename_already_inserted:
+                    row_dict[col] = os.path.basename(file_extracted) if file_extracted else ""
+                    filename_already_inserted = True
+                else:
+                    try:
+                        idx = header.index(col)
+                        row_dict[col] = values[idx].strip() if idx < len(values) else ""
+                    except ValueError:
+                        row_dict[col] = ""
+
+            new_data.append(row_dict)
+
+        new_df = pd.DataFrame(new_data, columns=expected_columns)
+        updated_df = pd.concat([master_df, new_df], ignore_index=True)
+
+        # Save in master
+        updated_df.to_excel(master_file_path, index=False)
+        logging.info(f"Data saved in master file: {master_file_path}")
