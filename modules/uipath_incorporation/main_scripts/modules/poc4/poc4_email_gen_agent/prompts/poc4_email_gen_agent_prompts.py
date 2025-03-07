@@ -70,7 +70,7 @@ I hope this message finds you well. I would like to inform you that the data ext
 However, we encountered an issue with the following file, which could not be extracted:
 - 334.39€ FP_SNQTB_102024.xlsx
 
-Please let us know if you need any further assistance or if you would like to attempt a different approach for the unprocessed file.
+Please let us know if you need any further assistance.
 
 Best regards,
 Nexis""",

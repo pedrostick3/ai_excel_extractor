@@ -290,7 +290,7 @@ def runExcelExtractionAgentWith(
         openai_api_key=openai_api_key,
         ai_embedding_model=OPENAI_EMBEDDING_MODEL,
         ai_model=OPENAI_FINE_TUNING_BASE_MODEL,
-        #update_parametrization_vector_db=True,
+        #use_logging_system=True,
     )
 
 def testPoC4EmailGenAgent(
@@ -331,7 +331,6 @@ def runExcelExtractionAgentWithPoC4EmailGenAgent(
         ai_embedding_model=OPENAI_EMBEDDING_MODEL,
         ai_model=OPENAI_FINE_TUNING_BASE_MODEL,
         #use_logging_system=True,
-        #update_parametrization_vector_db=True,
     )
 
     to_return["email_content"] = PoC4EmailGenAgent.run(

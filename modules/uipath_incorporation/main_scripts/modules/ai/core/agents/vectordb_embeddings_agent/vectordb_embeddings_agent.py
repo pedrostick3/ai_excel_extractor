@@ -1,13 +1,10 @@
-import os
+import logging
 from langchain_core.documents import Document
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_community.vectorstores import FAISS
-from langchain.chains import RetrievalQA
 from langchain.chains.qa_with_sources.retrieval import RetrievalQAWithSourcesChain
 from modules.ai.core.agents.vectordb_embeddings_agent.enums.vectordb_client_service_enum import VectordbClientServiceEnum
-from langchain_pinecone import PineconeVectorStore
 from langchain_chroma import Chroma
-from langchain_community.vectorstores.utils import filter_complex_metadata
 
 class VectordbEmbeddingsAgent:
     """
@@ -103,3 +100,28 @@ class VectordbEmbeddingsAgent:
         Returns the chat history as a list of messages.
         """
         return self.message_history.messages if self.message_history else []
+
+    def collection_exists(self) -> bool:
+        """
+        Checks if the collection exists AND contains data in the vector database.
+        Returns True only if both conditions are met.
+        """
+        try:
+            if self.client_service == VectordbClientServiceEnum.FAISS:
+                return (
+                    hasattr(self.embeddings_vector_llm, 'index') and 
+                    self.embeddings_vector_llm.index is not None and 
+                    self.embeddings_vector_llm.index.ntotal > 0  # Check for data presence
+                )
+            elif self.client_service == VectordbClientServiceEnum.CHROMA:
+                return (
+                    hasattr(self.embeddings_vector_llm, '_collection') and 
+                    self.embeddings_vector_llm._collection is not None and 
+                    self.embeddings_vector_llm._collection.count() > 0  # Check for data presence
+                )
+            else:
+                logging.warning(f"Unsupported client service: {self.client_service}")
+                return False
+        except Exception as e:
+            logging.warning(f"Collection existence check failed: {str(e)}")
+            return False

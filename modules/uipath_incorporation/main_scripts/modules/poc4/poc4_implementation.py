@@ -71,23 +71,21 @@ class PoC4Implementation:
             temperature = 0,
         )
 
-        if update_parametrization_vector_db:
+        parametrization_agent = VectordbEmbeddingsAgent(
+            client_service = vectordb_provider,
+            embedding_llm = embedding_llm,
+            retrieval_llm = retrieval_llm,
+            collection_name = parametrization_collection_name,
+        )
+        if update_parametrization_vector_db or not parametrization_agent.collection_exists():
             parametrization_csv_path = ExcelService.convert_xlsx_to_csv(parametrization_file_path, encoding=encoding)
             parametrization_docs = CSVLoader(parametrization_csv_path, encoding=encoding).load_and_split() # [LangChain CSVLoader Documentation](https://python.langchain.com/api_reference/community/document_loaders/langchain_community.document_loaders.csv_loader.CSVLoader.html)
-
             parametrization_agent = VectordbEmbeddingsAgent(
                 client_service = vectordb_provider,
                 embedding_llm = embedding_llm,
                 retrieval_llm = retrieval_llm,
                 documents = parametrization_docs,
                 force_add_documents = True,
-                collection_name = parametrization_collection_name,
-            )
-        else:
-            parametrization_agent = VectordbEmbeddingsAgent(
-                client_service = vectordb_provider,
-                embedding_llm = embedding_llm,
-                retrieval_llm = retrieval_llm,
                 collection_name = parametrization_collection_name,
             )
 

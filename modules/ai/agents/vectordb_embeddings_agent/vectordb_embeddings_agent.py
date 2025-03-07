@@ -1,4 +1,5 @@
 import os
+import logging
 from langchain_core.documents import Document
 from langchain_community.chat_message_histories import ChatMessageHistory
 from modules.ai.agents.pandas_dataframe_agent.schemas.pandas_dataframe_agent_response_schema import PandasDataframeAgentResponseSchema
@@ -145,6 +146,31 @@ class VectordbEmbeddingsAgent:
         """
         return self.message_history.messages if self.message_history else []
     
+    def collection_exists(self) -> bool:
+        """
+        Checks if the collection exists AND contains data in the vector database.
+        Returns True only if both conditions are met.
+        """
+        try:
+            if self.client_service == VectordbClientServiceEnum.FAISS:
+                return (
+                    hasattr(self.embeddings_vector_llm, 'index') and 
+                    self.embeddings_vector_llm.index is not None and 
+                    self.embeddings_vector_llm.index.ntotal > 0  # Check for data presence
+                )
+            elif self.client_service == VectordbClientServiceEnum.CHROMA or self.client_service == VectordbClientServiceEnum.PINECONE:
+                return (
+                    hasattr(self.embeddings_vector_llm, '_collection') and 
+                    self.embeddings_vector_llm._collection is not None and 
+                    self.embeddings_vector_llm._collection.count() > 0  # Check for data presence
+                )
+            else:
+                logging.warning(f"Unsupported client service: {self.client_service}")
+                return False
+        except Exception as e:
+            logging.warning(f"Collection existence check failed: {str(e)}")
+            return False
+
     #@staticmethod
     #def text_simple_example():
     #    """

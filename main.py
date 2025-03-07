@@ -127,11 +127,7 @@ def main():
         logging.info(f"AiImplementation.TEST_RAG - invoke response4 = {response4}")
     elif AI_IMPLEMENTATION == AiImplementation.POC_4:
         logging.info("START - AiImplementation.POC_4")
-        
-        results = PoC4Implementation.run(
-            input_files=input_files,
-            #update_parametrization_vector_db=True,
-        )
+        results = PoC4Implementation.run(input_files=input_files)
         print(f"Results: {results}")
 
     print("Main END")
