@@ -8,6 +8,7 @@ from modules.ai.core.enums.file_category import FileCategory
 from modules.excel.services.excel_service import ExcelService
 from modules.analytics.services.ai_analytics import AiAnalytics
 from modules.poc4.poc4_implementation import PoC4Implementation
+from modules.poc4.poc4_email_gen_agent.poc4_email_gen_agent import PoC4EmailGenAgent
 
 OPENAI_FINE_TUNING_BASE_MODEL = "gpt-4o-mini-2024-07-18" # https://platform.openai.com/docs/models OR https://openai.com/api/pricing
 OPENAI_FINE_TUNING_MODEL = "ft:gpt-4o-mini-2024-07-18:inspireit::Av1GNDPM" # Can be found in https://platform.openai.com/finetune/. It's the name of the model or you can check too in the 'Output model' propriety.
@@ -292,6 +293,59 @@ def runExcelExtractionAgentWith(
         #update_parametrization_vector_db=True,
     )
 
+def testPoC4EmailGenAgent(
+    openai_api_key: str,
+    email_content: str = "Hello Nexis, I hope you are doing well. I am contacting you to extract data from the attached files. Awaiting your response, Daniel Soares",
+    extracted_files_info: str = "{'files_able_to_extract_data': ['8.54€ SGF 092024.xlsx', '29.47€ Mapa Fundo Pensoes Sindicato Quadros_OUT2024.xlsx'], 'files_unable_to_extract_data': ['334.39€ FP_SNQTB_102024.xlsx']}",
+) -> dict:
+    return PoC4EmailGenAgent.run(
+        email_content=email_content,
+        extracted_files_info=extracted_files_info,
+        openai_api_key=openai_api_key,
+        ai_model=OPENAI_FINE_TUNING_BASE_MODEL,
+        #use_logging_system=True,
+    )
+
+def runExcelExtractionAgentWithPoC4EmailGenAgent(
+    openai_api_key: str,
+    email_content: str = "Hello Nexis, I hope you are doing well. I am contacting you to extract data from the attached files. Awaiting your response, Daniel Soares",
+    files_paths: list[str] = [
+        "./assets/docs_input/data_to_extract/8.54€ SGF 092024.xlsx",
+        "./assets/docs_input/data_to_extract/29.47€ Mapa Fundo Pensoes Sindicato Quadros_OUT2024.xlsx",
+        "./assets/docs_input/data_to_extract/73.19€ MAPA FUNDO PENSÕES SAMS QUADROS - 09.2024.xlsx",
+        "./assets/docs_input/data_to_extract/201.33€ 06 - FP - Junho 2024.xlsx",
+        "./assets/docs_input/data_to_extract/334.39€ FP_SNQTB_102024.xlsx",
+    ],
+    parametrization_file_path: str = "./assets/docs_input/ParameterizationFileCarpenter.xlsx",
+    output_folder_path: str = "./assets/docs_output",
+    output_file_name: str = "mestre dados_finais.xlsx",
+) -> dict:
+    to_return = {}
+
+    to_return["extracted_files_info"] = PoC4Implementation.run(
+        input_files=files_paths,
+        parametrization_file_path=parametrization_file_path,
+        output_folder=output_folder_path,
+        output_file_name=output_file_name,
+        openai_api_key=openai_api_key,
+        ai_embedding_model=OPENAI_EMBEDDING_MODEL,
+        ai_model=OPENAI_FINE_TUNING_BASE_MODEL,
+        #use_logging_system=True,
+        #update_parametrization_vector_db=True,
+    )
+
+    to_return["email_content"] = PoC4EmailGenAgent.run(
+        email_content=email_content,
+        extracted_files_info=to_return["extracted_files_info"],
+        openai_api_key=openai_api_key,
+        ai_model=OPENAI_FINE_TUNING_BASE_MODEL,
+        #use_logging_system=True,
+    )
+
+    to_return["extracted_files_info"]["output_file_path_with_the_extracted_data"] = f"{output_folder_path}/{output_file_name}"
+
+    return json.dumps(to_return)
+
 if __name__ == "__main__":
-    results = runExcelExtractionAgentWith("YOUR_OPENAI_API_KEY")
+    results = runExcelExtractionAgentWithPoC4EmailGenAgent("YOUR_OPENAI_API_KEY")
     print(f"Results: {results}")

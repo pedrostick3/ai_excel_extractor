@@ -34,7 +34,7 @@ class PoC4Implementation:
         output_file_name: str = "mestre dados_finais.xlsx",
         encoding: str ='utf-8-sig',
         add_csv_mapping_template_to_last_column: bool = True,
-        use_logging_system: bool = True,
+        use_logging_system: bool = False,
     ) -> dict:
         """
         Run the AI process for PoC3.
@@ -53,7 +53,7 @@ class PoC4Implementation:
             output_file_name (str): Output file name. Defaults to "mestre dados_finais.xlsx".
             encoding (str): Encoding of the input files. Defaults to "utf-8-sig".
             add_csv_mapping_template_to_last_column (bool): Flag to indicate if to add the CSV mapping template to the last column. Defaults to True.
-            use_logging_system (bool): Flag to indicate if to use the logging system. Defaults to True.
+            use_logging_system (bool): Flag to indicate if to use the logging system. Defaults to False.
         """
         # Config logs
         if use_logging_system:
