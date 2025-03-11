@@ -1,4 +1,17 @@
-EMAIL_GEN_SINGLE_QUESTION_PROMPT = """You are an assistant that adds sourece references to emails.
+EXTRACT_QUESTION_FROM_EMAIL_PROMPT = """Your job is to extract questions from an email.
+
+Example:
+- email: "Hello Nexis,\nI hope you are doing well.\n\nI am contacting you to ask the Daniel Coutinho NIF.\n\nAwaiting your response,\nDaniel Soares"
+- extracted questions: "What's Daniel Coutinho NIF?"
+
+This is the email:
+```
+{email}
+```
+
+{format_instructions}"""
+
+EMAIL_GEN_SINGLE_QUESTION_PROMPT = """You are an assistant that adds source references to emails.
 The source references should also specify the attachment filenames if the answer came from an attachament. Use the metadata info for that.
 
 Additional rules:

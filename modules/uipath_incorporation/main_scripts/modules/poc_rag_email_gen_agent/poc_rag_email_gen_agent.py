@@ -26,7 +26,7 @@ class PoCRagEmailGenAgent:
         ai_embedding_model: str = "text-embedding-3-small",
         temporary_collection_name: str = "temporary_collection",
         extra_docs_to_vectorize: list[Document] = [],
-        most_recent_email_or_other_questions: str = None,
+        override_questions: str = None,
         encoding: str ='utf-8-sig',
         use_logging_system: bool = False,
     ) -> dict:
@@ -40,7 +40,7 @@ class PoCRagEmailGenAgent:
             ai_embedding_model (str): AI embedding model to use. Defaults to "text-embedding-3-small".
             temporary_collection_name (str): Name of temporary collection. Defaults to "temporary_collection".
             extra_docs_to_vectorize (list[Document]): Additional documents to vectorize.
-            most_recent_email_or_other_questions (str): Most recent email or other questions to answer. Defaults to None.
+            override_questions (str): Questions that will override the last email questions. Defaults None.
             encoding (str): Encoding of the input files. Defaults to "utf-8-sig".
             use_logging_system (bool): Flag to indicate if to use the logging system. Defaults to False.
         """
@@ -77,6 +77,7 @@ class PoCRagEmailGenAgent:
         for email_path in email_as_eml_paths:
             email_docs.extend(VectordbEmbeddingsLoaderUtils.load_documents_from_eml(email_path))
 
+        # Vectorize emails & Init VectordbAgent
         vectordb_agent = VectordbEmbeddingsAgent(
             client_service=vectordb_provider,
             embedding_llm=embedding_llm,
@@ -89,16 +90,28 @@ class PoCRagEmailGenAgent:
         # Define Chains
         chain_get_most_recent_email_body_from_vectordb = (
             RunnablePassthrough.assign(question=lambda _: "Get the most recent email body")
-            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "The most recent email question"))
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "The most recent email [Question]"))
             | vectordb_agent.qa_chain
-            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "The most recent email result"))
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "The most recent email [Result]"))
         )
 
-        chain_answer_email_from_vectordb = (
-            RunnablePassthrough.assign(question=lambda x: most_recent_email_or_other_questions if most_recent_email_or_other_questions else x["answer"])
-            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Answer email question"))
+        email_questions_parser = StructuredOutputParser.from_response_schemas([ResponseSchema(name="email_questions", description="The simplified questions of email")])
+        chain_extract_simple_question = (
+            RunnablePassthrough.assign(prompt=lambda x: prompts.EXTRACT_QUESTION_FROM_EMAIL_PROMPT.format(
+                email=x,
+                format_instructions=email_questions_parser.get_format_instructions(),
+            ))
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Get simplified questions [Question]"))
+            | RunnableLambda(lambda x: [HumanMessage(content=x["prompt"])])
+            | vectordb_agent.retrieval_llm
+            | RunnableLambda(lambda x: LoggerService.log_and_return(email_questions_parser.parse(x.content), "Get simplified questions [Result]"))
+        )
+
+        chain_answer_questions_with_vectordb = (
+            RunnablePassthrough.assign(question=lambda x: override_questions if override_questions else x["email_questions"])
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Answer questions with VectorDB [Question]"))
             | vectordb_agent.qa_chain
-            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Answer email result"))
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Answer questions with VectorDB [Result]"))
         )
 
         email_body_parser = StructuredOutputParser.from_response_schemas([ResponseSchema(name="email_body", description="The email body to send")])
@@ -115,9 +128,19 @@ class PoCRagEmailGenAgent:
 
         # Invoke Chains
         if most_recent_email_body:
-            chain_get_all = RunnablePassthrough.assign(answer=lambda _: most_recent_email_body) | chain_answer_email_from_vectordb | chain_add_sources_to_answer
+            chain_get_all = (
+                RunnablePassthrough.assign(email_questions=lambda _: most_recent_email_body)
+                | chain_extract_simple_question
+                | chain_answer_questions_with_vectordb
+                | chain_add_sources_to_answer
+            )
         else:
-            chain_get_all = chain_get_most_recent_email_body_from_vectordb | chain_answer_email_from_vectordb | chain_add_sources_to_answer
+            chain_get_all = (
+                chain_get_most_recent_email_body_from_vectordb
+                | chain_extract_simple_question
+                | chain_answer_questions_with_vectordb
+                | chain_add_sources_to_answer
+            )
         
         result = chain_get_all.invoke({})
         logging.info(f"#### Finished processing received email in {time.time() - start_time:.2f} seconds : {result["email_body"]} ####")
