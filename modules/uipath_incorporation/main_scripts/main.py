@@ -9,6 +9,7 @@ from modules.excel.services.excel_service import ExcelService
 from modules.analytics.services.ai_analytics import AiAnalytics
 from modules.poc4.poc4_implementation import PoC4Implementation
 from modules.poc4.poc4_email_gen_agent.poc4_email_gen_agent import PoC4EmailGenAgent
+from modules.poc_rag_email_gen_agent.poc_rag_email_gen_agent import PoCRagEmailGenAgent
 
 OPENAI_FINE_TUNING_BASE_MODEL = "gpt-4o-mini-2024-07-18" # https://platform.openai.com/docs/models OR https://openai.com/api/pricing
 OPENAI_FINE_TUNING_MODEL = "ft:gpt-4o-mini-2024-07-18:inspireit::Av1GNDPM" # Can be found in https://platform.openai.com/finetune/. It's the name of the model or you can check too in the 'Output model' propriety.
@@ -345,6 +346,34 @@ def runExcelExtractionAgentWithPoC4EmailGenAgent(
 
     return json.dumps(to_return)
 
+def testRagEmailGenAgent(
+    openai_api_key: str,
+    emails: list[str] = [
+        "./assets/docs_input/emails/poc3_email_ask_for_modification.eml",
+        "./assets/docs_input/emails/poc3_email_response_with_processed_files.eml",
+        "./assets/docs_input/emails/poc4_email_ask_to_extract_data.eml",
+        "./assets/docs_input/emails/poc4_email_response_with_extracted_data.eml",
+        "./assets/docs_input/emails/poc_rag_email_with_questions.eml",
+    ],
+) -> dict:
+    to_return = {}
+
+    #from langchain_community.document_loaders import WebBaseLoader
+    #inspire_web_docs = WebBaseLoader(["https://inspireit.pt/pt/"], encoding='utf-8-sig').load_and_split()
+    # Question = "Who is InspireIT? (get it's contacts)"
+
+    to_return["email_body"] = PoCRagEmailGenAgent.run(
+        email_as_eml_paths=emails,
+        #extra_docs_to_vectorize=[*inspire_web_docs],
+        openai_api_key=openai_api_key,
+        ai_embedding_model=OPENAI_EMBEDDING_MODEL,
+        ai_model=OPENAI_FINE_TUNING_BASE_MODEL,
+        use_logging_system=True,
+        #most_recent_email_or_other_questions="What's Daniel Coutinho NIF?",
+    )
+
+    return json.dumps(to_return)
+
 if __name__ == "__main__":
-    results = runExcelExtractionAgentWithPoC4EmailGenAgent("YOUR_OPENAI_API_KEY")
+    results = testRagEmailGenAgent("YOUR_OPENAI_API_KEY")
     print(f"Results: {results}")

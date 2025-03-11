@@ -80,6 +80,7 @@ class PoC4Implementation:
         if update_parametrization_vector_db or not parametrization_agent.collection_exists():
             parametrization_csv_path = ExcelService.convert_xlsx_to_csv(parametrization_file_path, encoding=encoding)
             parametrization_docs = CSVLoader(parametrization_csv_path, encoding=encoding).load_and_split() # [LangChain CSVLoader Documentation](https://python.langchain.com/api_reference/community/document_loaders/langchain_community.document_loaders.csv_loader.CSVLoader.html)
+            parametrization_agent.embeddings_vector_llm.delete_collection() # Delete old vectors
             parametrization_agent = VectordbEmbeddingsAgent(
                 client_service = vectordb_provider,
                 embedding_llm = embedding_llm,

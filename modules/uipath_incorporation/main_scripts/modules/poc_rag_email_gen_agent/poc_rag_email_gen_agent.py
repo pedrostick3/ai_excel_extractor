@@ -1,0 +1,128 @@
+import time
+import logging
+from langchain_openai import ChatOpenAI
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+from modules.ai.core.agents.vectordb_embeddings_agent.utils.vectordb_embeddings_loader_utils import VectordbEmbeddingsLoaderUtils
+from modules.logger.services.logger_service import LoggerService
+from modules.poc_rag_email_gen_agent.utils.poc_rag_utils import PoCRagUtils
+import modules.poc_rag_email_gen_agent.prompts.poc_rag_email_gen_agent_prompts as prompts
+from modules.ai.core.agents.vectordb_embeddings_agent.vectordb_embeddings_agent import VectordbEmbeddingsAgent
+from modules.ai.core.agents.vectordb_embeddings_agent.enums.vectordb_client_service_enum import VectordbClientServiceEnum
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain.schema import HumanMessage
+from langchain_core.documents import Document
+
+
+class PoCRagEmailGenAgent:
+    """
+    Class to interact with the AI Email Gen Agent.
+    """
+    @staticmethod
+    def run(
+        email_as_eml_paths: list[str],
+        openai_api_key: str,
+        ai_model: str = "gpt-4o-mini-2024-07-18",
+        ai_embedding_model: str = "text-embedding-3-small",
+        temporary_collection_name: str = "temporary_collection",
+        extra_docs_to_vectorize: list[Document] = [],
+        most_recent_email_or_other_questions: str = None,
+        encoding: str ='utf-8-sig',
+        use_logging_system: bool = False,
+    ) -> dict:
+        """
+        Run the AI process for PoC3.
+
+        Args:
+            email_as_eml_paths (list[str]): List of email paths.
+            openai_api_key (str): OpenAI API key.
+            ai_model (str): AI model to use. Defaults to "gpt-4o-mini-2024-07-18".
+            ai_embedding_model (str): AI embedding model to use. Defaults to "text-embedding-3-small".
+            temporary_collection_name (str): Name of temporary collection. Defaults to "temporary_collection".
+            extra_docs_to_vectorize (list[Document]): Additional documents to vectorize.
+            most_recent_email_or_other_questions (str): Most recent email or other questions to answer. Defaults to None.
+            encoding (str): Encoding of the input files. Defaults to "utf-8-sig".
+            use_logging_system (bool): Flag to indicate if to use the logging system. Defaults to False.
+        """
+        # Config logs
+        if use_logging_system:
+            LoggerService.init()
+
+        # Initialize vars to use with LangChain
+        vectordb_provider = VectordbClientServiceEnum.CHROMA
+        embedding_llm = OpenAIEmbeddings(
+            api_key = openai_api_key,
+            model = ai_embedding_model,
+        )
+        retrieval_llm = ChatOpenAI(
+            api_key = openai_api_key,
+            model_name = ai_model,
+            temperature = 0,
+        )
+
+        # Process emails
+        start_time = time.time()
+        logging.info(f"#### Start processing the received emails: {email_as_eml_paths} ####")
+
+        # Sort emails with the most recent dates first
+        email_as_eml_paths.sort(key=PoCRagUtils.get_email_date, reverse=True)
+
+        # Load the most recent email body
+        if email_as_eml_paths:
+            most_recent_email_body = PoCRagUtils.get_email_body(email_as_eml_paths[0])
+            logging.info(f"Body of the most recent email: {most_recent_email_body}")
+
+        # Load email docs
+        email_docs: list[Document] = []
+        for email_path in email_as_eml_paths:
+            email_docs.extend(VectordbEmbeddingsLoaderUtils.load_documents_from_eml(email_path))
+
+        vectordb_agent = VectordbEmbeddingsAgent(
+            client_service=vectordb_provider,
+            embedding_llm=embedding_llm,
+            retrieval_llm=retrieval_llm,
+            documents=[*email_docs, *extra_docs_to_vectorize],
+            collection_name=temporary_collection_name,
+            force_add_documents=True,
+        )
+
+        # Define Chains
+        chain_get_most_recent_email_body_from_vectordb = (
+            RunnablePassthrough.assign(question=lambda _: "Get the most recent email body")
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "The most recent email question"))
+            | vectordb_agent.qa_chain
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "The most recent email result"))
+        )
+
+        chain_answer_email_from_vectordb = (
+            RunnablePassthrough.assign(question=lambda x: most_recent_email_or_other_questions if most_recent_email_or_other_questions else x["answer"])
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Answer email question"))
+            | vectordb_agent.qa_chain
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Answer email result"))
+        )
+
+        email_body_parser = StructuredOutputParser.from_response_schemas([ResponseSchema(name="email_body", description="The email body to send")])
+        chain_add_sources_to_answer = (
+            RunnablePassthrough.assign(prompt=lambda x: prompts.EMAIL_GEN_SINGLE_QUESTION_PROMPT.format(
+                answered_email=x,
+                format_instructions=email_body_parser.get_format_instructions(),
+            ))
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Add source to email response [Question]"))
+            | RunnableLambda(lambda x: [HumanMessage(content=x["prompt"])])
+            | vectordb_agent.retrieval_llm
+            | RunnableLambda(lambda x: LoggerService.log_and_return(email_body_parser.parse(x.content), "Add source to email response [Result]"))
+        )
+
+        # Invoke Chains
+        if most_recent_email_body:
+            chain_get_all = RunnablePassthrough.assign(answer=lambda _: most_recent_email_body) | chain_answer_email_from_vectordb | chain_add_sources_to_answer
+        else:
+            chain_get_all = chain_get_most_recent_email_body_from_vectordb | chain_answer_email_from_vectordb | chain_add_sources_to_answer
+        
+        result = chain_get_all.invoke({})
+        logging.info(f"#### Finished processing received email in {time.time() - start_time:.2f} seconds : {result["email_body"]} ####")
+
+        vectordb_agent.embeddings_vector_llm.delete_collection() # Delete old vectors
+
+        return result
+    
