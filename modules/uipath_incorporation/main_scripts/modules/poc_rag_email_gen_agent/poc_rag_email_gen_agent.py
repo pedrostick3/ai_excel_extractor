@@ -87,6 +87,28 @@ class PoCRagEmailGenAgent:
             force_add_documents=True,
         )
 
+        # Invoke Chains
+        result = PoCRagEmailGenAgent._get_chain_result(
+            vectordb_agent=vectordb_agent,
+            most_recent_email_body=most_recent_email_body,
+            override_questions=override_questions,
+        )
+        logging.info(f"#### Finished processing received email in {time.time() - start_time:.2f} seconds : {result["email_body"]} ####")
+
+        vectordb_agent.embeddings_vector_llm.delete_collection() # Delete old vectors
+
+        return result
+    
+    @staticmethod
+    def _get_chain_result(
+        vectordb_agent: VectordbEmbeddingsAgent,
+        most_recent_email_body: str = None,
+        override_questions: str = None,
+    ) -> dict:
+        # Define Parsers
+        email_questions_parser = StructuredOutputParser.from_response_schemas([ResponseSchema(name="email_questions", description="The simplified questions of email")])
+        email_body_parser = StructuredOutputParser.from_response_schemas([ResponseSchema(name="email_body", description="The email body to send")])
+
         # Define Chains
         chain_get_most_recent_email_body_from_vectordb = (
             RunnablePassthrough.assign(question=lambda _: "Get the most recent email body")
@@ -95,7 +117,6 @@ class PoCRagEmailGenAgent:
             | RunnableLambda(lambda x: LoggerService.log_and_return(x, "The most recent email [Result]"))
         )
 
-        email_questions_parser = StructuredOutputParser.from_response_schemas([ResponseSchema(name="email_questions", description="The simplified questions of email")])
         chain_extract_simple_question = (
             RunnablePassthrough.assign(prompt=lambda x: prompts.EXTRACT_QUESTION_FROM_EMAIL_PROMPT.format(
                 email=x,
@@ -114,9 +135,8 @@ class PoCRagEmailGenAgent:
             | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Answer questions with VectorDB [Result]"))
         )
 
-        email_body_parser = StructuredOutputParser.from_response_schemas([ResponseSchema(name="email_body", description="The email body to send")])
         chain_add_sources_to_answer = (
-            RunnablePassthrough.assign(prompt=lambda x: prompts.EMAIL_GEN_SINGLE_QUESTION_PROMPT.format(
+            RunnablePassthrough.assign(prompt=lambda x: prompts.ADD_SOURCES_TO_ANSWER_PROMPT.format(
                 answered_email=x,
                 format_instructions=email_body_parser.get_format_instructions(),
             ))
@@ -124,6 +144,18 @@ class PoCRagEmailGenAgent:
             | RunnableLambda(lambda x: [HumanMessage(content=x["prompt"])])
             | vectordb_agent.retrieval_llm
             | RunnableLambda(lambda x: LoggerService.log_and_return(email_body_parser.parse(x.content), "Add source to email response [Result]"))
+        )
+        
+        chain_prettify_email = (
+            RunnablePassthrough.assign(prompt=lambda x: prompts.EMAIL_GEN_AND_PRETTIFY_PROMPT.format(
+                original_email=most_recent_email_body,
+                answered_email=x,
+                format_instructions=email_body_parser.get_format_instructions(),
+            ))
+            | RunnableLambda(lambda x: LoggerService.log_and_return(x, "Prettify email answers & sources [Question]"))
+            | RunnableLambda(lambda x: [HumanMessage(content=x["prompt"])])
+            | vectordb_agent.retrieval_llm
+            | RunnableLambda(lambda x: LoggerService.log_and_return(email_body_parser.parse(x.content), "Prettify email answers & sources [Result]"))
         )
 
         # Invoke Chains
@@ -133,6 +165,7 @@ class PoCRagEmailGenAgent:
                 | chain_extract_simple_question
                 | chain_answer_questions_with_vectordb
                 | chain_add_sources_to_answer
+                | chain_prettify_email
             )
         else:
             chain_get_all = (
@@ -140,12 +173,7 @@ class PoCRagEmailGenAgent:
                 | chain_extract_simple_question
                 | chain_answer_questions_with_vectordb
                 | chain_add_sources_to_answer
+                | chain_prettify_email
             )
         
-        result = chain_get_all.invoke({})
-        logging.info(f"#### Finished processing received email in {time.time() - start_time:.2f} seconds : {result["email_body"]} ####")
-
-        vectordb_agent.embeddings_vector_llm.delete_collection() # Delete old vectors
-
-        return result
-    
+        return chain_get_all.invoke({})

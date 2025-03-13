@@ -1,5 +1,6 @@
 import email
 import logging
+from modules.ai.core.agents.vectordb_embeddings_agent.utils.vectordb_embeddings_loader_utils import VectordbEmbeddingsLoaderUtils
 
 class PoCRagUtils:
     @staticmethod
@@ -15,6 +16,7 @@ class PoCRagUtils:
             The timestamp representing the email date.
             If no date is found or an error occurs, returns -1.
         """
+        encoding = VectordbEmbeddingsLoaderUtils.get_encoding_of_file(file_path=eml_path, default_encoding=encoding)
         try:
             with open(eml_path, 'r', encoding=encoding) as file:
                 msg = email.message_from_file(file)
@@ -46,6 +48,7 @@ class PoCRagUtils:
             The body of the email as a string.
             If no body is found or an error occurs, returns an empty string.        
         """
+        encoding = VectordbEmbeddingsLoaderUtils.get_encoding_of_file(file_path=eml_path, default_encoding=encoding)
         try:
             with open(eml_path, 'r', encoding=encoding) as file:
                 msg = email.message_from_file(file)

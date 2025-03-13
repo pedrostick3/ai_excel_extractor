@@ -346,7 +346,7 @@ def runExcelExtractionAgentWithPoC4EmailGenAgent(
 
     return json.dumps(to_return)
 
-def testRagEmailGenAgent(
+def runRagEmailGenAgent(
     openai_api_key: str,
     emails: list[str] = [
         "./assets/docs_input/emails/poc3_email_ask_for_modification.eml",
@@ -356,13 +356,11 @@ def testRagEmailGenAgent(
         "./assets/docs_input/emails/poc_rag_email_with_questions.eml",
     ],
 ) -> dict:
-    to_return = {}
-
     #from langchain_community.document_loaders import WebBaseLoader
     #inspire_web_docs = WebBaseLoader(["https://inspireit.pt/pt/"], encoding='utf-8-sig').load_and_split()
     # Question = "Who is InspireIT? (get it's contacts)"
 
-    to_return["email_body"] = PoCRagEmailGenAgent.run(
+    result = PoCRagEmailGenAgent.run(
         email_as_eml_paths=emails,
         #extra_docs_to_vectorize=[*inspire_web_docs],
         openai_api_key=openai_api_key,
@@ -372,8 +370,8 @@ def testRagEmailGenAgent(
         #override_questions="What's Daniel Coutinho NIF?",
     )
 
-    return json.dumps(to_return)
+    return json.dumps(result)
 
 if __name__ == "__main__":
-    results = testRagEmailGenAgent("YOUR_OPENAI_API_KEY")
+    results = runRagEmailGenAgent("YOUR_OPENAI_API_KEY")
     print(f"Results: {results}")
