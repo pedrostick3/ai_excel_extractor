@@ -1,4 +1,3 @@
-import os
 from email import policy
 from email.parser import BytesParser
 import logging
@@ -21,7 +20,7 @@ class VectordbEmbeddingsLoaderUtils:
         eml_path: str,
         documents_split_mode: str = "single",
         encoding: str = 'utf-8-sig',
-        log_found_documents: bool = False,
+        log_found_documents: bool = True,
     ) -> list[Document]:
         """
         Load documents from an email file (EML) into a list of Documents.
@@ -34,7 +33,7 @@ class VectordbEmbeddingsLoaderUtils:
                 - 'elements': Maintain each element as a separate Document (ex: useful for html) and gets better metadata.
                 - 'paged': Combine elements by page into separate Documents.
             encoding (str, optional): Encoding for the EML file. Defaults to 'utf-8-sig'.
-            log_found_documents (bool): Enables logging of found documents. Defaults to False.
+            log_found_documents (bool): Enables logging of found documents. Defaults to True.
         """
         encoding = VectordbEmbeddingsLoaderUtils.get_encoding_of_file(file_path=eml_path, default_encoding=encoding)
 
@@ -72,8 +71,11 @@ class VectordbEmbeddingsLoaderUtils:
 
         # Metadata assignment
         email_attachments_filenames = VectordbEmbeddingsLoaderUtils._extract_attachments_from_eml_file(eml_path)
-        current_attachment_idx = -1
-        seen_filenames = set()
+        if not email_attachments_filenames:
+            email_attachments = []
+        else:
+            current_attachment_idx = -1
+            seen_filenames = set()
         
         for doc in email_attachments:
             # Detect new attachments using multiple metadata signals
@@ -82,16 +84,20 @@ class VectordbEmbeddingsLoaderUtils:
                 doc.metadata.get('filename') not in seen_filenames
             )
             
-            if is_new_attachment and current_attachment_idx < len(email_attachments_filenames) - 1:
+            if (email_attachments_filenames and is_new_attachment and current_attachment_idx < len(email_attachments_filenames) - 1):
                 current_attachment_idx += 1
                 seen_filenames.add(doc.metadata.get('filename', ''))
 
             # Assign metadata
-            filename = (
-                email_attachments_filenames[current_attachment_idx] 
-                if current_attachment_idx < len(email_attachments_filenames) 
-                else f'unknown_attachment_{current_attachment_idx}'
-            )
+            filename = ""
+            if email_attachments_filenames:
+                filename = (
+                    email_attachments_filenames[current_attachment_idx] 
+                    if 0 <= current_attachment_idx < len(email_attachments_filenames)
+                    else f'unknown_attachment_{current_attachment_idx}'
+                )
+            else:
+                filename = f'no_attachment_{current_attachment_idx}'
             
             doc.metadata.update({
                 'content_type': 'attachment',
@@ -118,10 +124,13 @@ class VectordbEmbeddingsLoaderUtils:
         """
         Returns a list of attachments filenames extracted from the given eml file.
         """
-        with open(eml_path, 'rb') as f:
-            raw_data = f.read()
-            msg = BytesParser(policy=policy.default).parsebytes(raw_data)
-            return [part.get_filename() for part in msg.iter_attachments() if part.get_filename()]
+        try:
+            with open(eml_path, 'rb') as f:
+                msg = BytesParser(policy=policy.default).parsebytes(f.read())
+                return [str(part.get_filename()) for part in msg.iter_attachments() if part.get_filename()]
+        except Exception as e:
+            logging.error(f"Attachment extraction failed on file {eml_path}\nError: {e}")
+            return []
     
     @staticmethod
     def _stringify_non_string_dict_values(input_dict: dict) -> dict:
