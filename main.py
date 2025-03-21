@@ -1,6 +1,7 @@
 import pandas as pd
 import logging
 import constants.configs as configs
+from modules.ai.langchain_agent.langchain_agent import LangChainAgent
 from modules.ai.langsmith.services.langsmith_service import LangSmithService
 from modules.enums.ai_implementation import AiImplementation
 from langchain_community.document_loaders import CSVLoader, WebBaseLoader, DirectoryLoader
@@ -12,8 +13,9 @@ from langchain_docling import DoclingLoader
 from modules.excel.services.excel_service import ExcelService
 from modules.logger.services.logger_service import LoggerService
 from modules.poc4.poc4_implementation import PoC4Implementation
+from modules.poc_rag_email_gen_agent.poc_rag_email_gen_agent import PoCRagEmailGenAgent
 
-AI_IMPLEMENTATION = AiImplementation.TEST_LANGSMITH
+AI_IMPLEMENTATION = AiImplementation.TEST_LANGCHAIN_AGENT
 
 
 def main():
@@ -137,6 +139,34 @@ def main():
         # Test with PoC4
         results = PoC4Implementation.run(input_files=input_files)
         print(f"Results: {results}")
+    elif AI_IMPLEMENTATION == AiImplementation.POC_RAG:
+        logging.info("START - AiImplementation.POC_RAG")
+        
+        #from langchain_community.document_loaders import WebBaseLoader
+        #inspire_web_docs = WebBaseLoader(["https://inspireit.pt/pt/"], encoding='utf-8-sig').load_and_split()
+        # Question = "Who is InspireIT? (get it's contacts)"
+
+        result = PoCRagEmailGenAgent.run(
+            email_as_eml_paths=[
+                "./assets/docs_input/emails/poc3_email_ask_for_modification.eml",
+                "./assets/docs_input/emails/poc3_email_response_with_processed_files.eml",
+                "./assets/docs_input/emails/poc4_email_ask_to_extract_data.eml",
+                "./assets/docs_input/emails/poc4_email_response_with_extracted_data.eml",
+                "./assets/docs_input/emails/poc_rag_email_with_questions.eml",
+                #"./assets/docs_input/emails/uipath_extracted_emls/Extract Data20250314_152830.eml",
+                #"./assets/docs_input/emails/uipath_extracted_emls/RE Extract Data20250314_152827.eml",
+                #"./assets/docs_input/emails/uipath_extracted_emls/RE Extract Data20250314_155113.eml",
+            ],
+            #extra_docs_to_vectorize=[*inspire_web_docs],
+            openai_api_key=configs.OPENAI_API_KEY,
+            ai_embedding_model=configs.OPENAI_EMBEDDING_MODEL,
+            ai_model = configs.OPENAI_FINE_TUNING_BASE_MODEL,
+            #override_questions="What's Germano Dias NIF?",
+        )
+        logging.info(f"Result: {result}")
+    elif AI_IMPLEMENTATION == AiImplementation.TEST_LANGCHAIN_AGENT:
+        logging.info("START - AiImplementation.TEST_LANGCHAIN_AGENT")
+        LangChainAgent.run_agent_type_zero_shot_react_description()
 
     print("Main END")
 
