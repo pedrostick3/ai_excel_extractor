@@ -20,7 +20,17 @@ class AiImplementation(Enum):
         "official_docs": "https://python.langchain.com/docs/tutorials/rag/",
     }
     POC_4 = {"description": "PoC4 implementation"}
-    TEST_LANGSMITH = {"description": "LangSmith tool test"}
+    POC_RAG = {"description": "PoC_RAG implementation"}
+    TEST_LANGSMITH = {
+        "description": "LangSmith tool test",
+        "official_docs": "https://docs.smith.langchain.com/",
+        "official_platform": "https://eu.smith.langchain.com/",
+    }
+    TEST_LANGCHAIN_AGENT = {
+        "description": "LangChain Agent test (deprecated approach)",
+        "official_docs": "https://python.langchain.com/api_reference/langchain/agents/langchain.agents.mrkl.base.ZeroShotAgent.html",
+        "migrate_langchain_agent_to_langgraph": "https://python.langchain.com/docs/how_to/migrate_agent/",
+    }
 
     @staticmethod
     def get_implementation_by_description(implementation_description: str) -> "AiImplementation":
