@@ -350,14 +350,14 @@ def runExcelExtractionAgentWithPoC4EmailGenAgent(
 def runRagEmailGenAgent(
     openai_api_key: str,
     emails: list[str] = [
-        #"./assets/docs_input/emails/poc3_email_ask_for_modification.eml",
-        #"./assets/docs_input/emails/poc3_email_response_with_processed_files.eml",
-        #"./assets/docs_input/emails/poc4_email_ask_to_extract_data.eml",
-        #"./assets/docs_input/emails/poc4_email_response_with_extracted_data.eml",
-        #"./assets/docs_input/emails/poc_rag_email_with_questions.eml",
-        "./assets/docs_input/emails/uipath_extracted_emls/Extract Data20250314_115534.eml",
-        "./assets/docs_input/emails/uipath_extracted_emls/RE Extract Data20250314_115528.eml",
-        "./assets/docs_input/emails/uipath_extracted_emls/RE Extract Data20250314_115531.eml",
+        "./assets/docs_input/emails/poc3_email_ask_for_modification.eml",
+        "./assets/docs_input/emails/poc3_email_response_with_processed_files.eml",
+        "./assets/docs_input/emails/poc4_email_ask_to_extract_data.eml",
+        "./assets/docs_input/emails/poc4_email_response_with_extracted_data.eml",
+        "./assets/docs_input/emails/poc_rag_email_with_questions.eml",
+        #"./assets/docs_input/emails/uipath_extracted_emls/Extract Data20250314_152830.eml",
+        #"./assets/docs_input/emails/uipath_extracted_emls/RE Extract Data20250314_152827.eml",
+        #"./assets/docs_input/emails/uipath_extracted_emls/RE Extract Data20250314_155113.eml",
     ],
 ) -> dict:
     #from langchain_community.document_loaders import WebBaseLoader
@@ -374,7 +374,7 @@ def runRagEmailGenAgent(
         ai_embedding_model=OPENAI_EMBEDDING_MODEL,
         ai_model=OPENAI_FINE_TUNING_BASE_MODEL,
         use_logging_system=True,
-        #override_questions="What's Nicodemo Vila NIF?",
+        #override_questions="What's Germano Dias NIF?",
     )
 
     return json.dumps(result)

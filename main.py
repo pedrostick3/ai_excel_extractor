@@ -1,6 +1,7 @@
 import pandas as pd
 import logging
 import constants.configs as configs
+from modules.ai.langsmith.services.langsmith_service import LangSmithService
 from modules.enums.ai_implementation import AiImplementation
 from langchain_community.document_loaders import CSVLoader, WebBaseLoader, DirectoryLoader
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
@@ -12,7 +13,7 @@ from modules.excel.services.excel_service import ExcelService
 from modules.logger.services.logger_service import LoggerService
 from modules.poc4.poc4_implementation import PoC4Implementation
 
-AI_IMPLEMENTATION = AiImplementation.POC_4
+AI_IMPLEMENTATION = AiImplementation.TEST_LANGSMITH
 
 
 def main():
@@ -127,6 +128,13 @@ def main():
         logging.info(f"AiImplementation.TEST_RAG - invoke response4 = {response4}")
     elif AI_IMPLEMENTATION == AiImplementation.POC_4:
         logging.info("START - AiImplementation.POC_4")
+        results = PoC4Implementation.run(input_files=input_files)
+        print(f"Results: {results}")
+    elif AI_IMPLEMENTATION == AiImplementation.TEST_LANGSMITH:
+        logging.info("START - AiImplementation.TEST_LANGSMITH")
+        LangSmithService.init_service()
+
+        # Test with PoC4
         results = PoC4Implementation.run(input_files=input_files)
         print(f"Results: {results}")
 

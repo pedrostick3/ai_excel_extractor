@@ -53,3 +53,9 @@ AZURE_API_VERSION = "2024-08-01-preview" # Can be found in: Azure AI Foundry > D
 # [Langchain Pinecone official docs](https://python.langchain.com/docs/integrations/vectorstores/pinecone/)
 PINECONE_API_KEY = "<your_key>"
 PINECONE_INDEX_NAME = "test-index"
+
+# LangSmith Configs
+LANGSMITH_TRACING=True
+LANGSMITH_ENDPOINT="https://eu.api.smith.langchain.com"
+LANGSMITH_API_KEY="<your-api-key>"
+LANGSMITH_PROJECT="test-langsmith"

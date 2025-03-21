@@ -20,6 +20,7 @@ class AiImplementation(Enum):
         "official_docs": "https://python.langchain.com/docs/tutorials/rag/",
     }
     POC_4 = {"description": "PoC4 implementation"}
+    TEST_LANGSMITH = {"description": "LangSmith tool test"}
 
     @staticmethod
     def get_implementation_by_description(implementation_description: str) -> "AiImplementation":
