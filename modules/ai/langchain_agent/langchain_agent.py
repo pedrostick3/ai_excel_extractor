@@ -1,26 +1,11 @@
 import time
 import logging
 from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableLambda
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from constants import configs
 from modules.logger.services.logger_service import LoggerService
-import modules.ai.langchain_agent.prompts.langchain_agent_prompts as prompts
-
-# LangChain Agent
 from langchain.agents import load_tools
 from langchain.agents import initialize_agent
 from langchain.agents import AgentType
-
-# LangGraph Agent
-from langchain_anthropic import ChatAnthropic
-from langchain_community.tools.tavily_search import TavilySearchResults
-from langchain_core.messages import HumanMessage
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.prebuilt import create_react_agent
-
-from modules.poc_rag_email_gen_agent.poc_rag_email_gen_agent import PoCRagEmailGenAgent
 
 class LangChainAgent:
     """
@@ -33,7 +18,7 @@ class LangChainAgent:
         use_logging_system: bool = True,
     ) -> dict:
         """
-        Run the AI process for PoC3.
+        Run the AI to test the Agent.
 
         Args:
             openai_api_key (str): OpenAI API key.

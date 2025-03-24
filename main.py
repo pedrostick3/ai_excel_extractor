@@ -2,6 +2,8 @@ import pandas as pd
 import logging
 import constants.configs as configs
 from modules.ai.langchain_agent.langchain_agent import LangChainAgent
+from modules.ai.langgraph_agent.langgraph_agent_with_weather_tool import LangGraphAgentWithWeatherTool
+from modules.ai.langgraph_agent.langgraph_multi_agents import LangGraphMultiAgents
 from modules.ai.langsmith.services.langsmith_service import LangSmithService
 from modules.enums.ai_implementation import AiImplementation
 from langchain_community.document_loaders import CSVLoader, WebBaseLoader, DirectoryLoader
@@ -15,7 +17,7 @@ from modules.logger.services.logger_service import LoggerService
 from modules.poc4.poc4_implementation import PoC4Implementation
 from modules.poc_rag_email_gen_agent.poc_rag_email_gen_agent import PoCRagEmailGenAgent
 
-AI_IMPLEMENTATION = AiImplementation.TEST_LANGCHAIN_AGENT
+AI_IMPLEMENTATION = AiImplementation.TEST_LANGGRAPH_MULTI_AGENT
 
 
 def main():
@@ -167,6 +169,12 @@ def main():
     elif AI_IMPLEMENTATION == AiImplementation.TEST_LANGCHAIN_AGENT:
         logging.info("START - AiImplementation.TEST_LANGCHAIN_AGENT")
         LangChainAgent.run_agent_type_zero_shot_react_description()
+    elif AI_IMPLEMENTATION == AiImplementation.TEST_LANGGRAPH_AGENT:
+        logging.info("START - AiImplementation.TEST_LANGGRAPH_AGENT")
+        LangGraphAgentWithWeatherTool.run()
+    elif AI_IMPLEMENTATION == AiImplementation.TEST_LANGGRAPH_MULTI_AGENT:
+        logging.info("START - AiImplementation.TEST_LANGGRAPH_MULTI_AGENT")
+        LangGraphMultiAgents.run()
 
     print("Main END")
 

@@ -31,6 +31,15 @@ class AiImplementation(Enum):
         "official_docs": "https://python.langchain.com/api_reference/langchain/agents/langchain.agents.mrkl.base.ZeroShotAgent.html",
         "migrate_langchain_agent_to_langgraph": "https://python.langchain.com/docs/how_to/migrate_agent/",
     }
+    TEST_LANGGRAPH_AGENT = {
+        "description": "LangGraph Agent test",
+        "official_docs": "https://python.langchain.com/docs/tutorials/agents/",
+    }
+    TEST_LANGGRAPH_MULTI_AGENT = {
+        "description": "LangGraph Multi-Agent Collaboration test",
+        "official_docs": "https://github.com/langchain-ai/langgraph/blob/main/docs/docs/tutorials/multi_agent/multi-agent-collaboration.ipynb",
+        "tutorial_video": "https://youtu.be/hvAPnpSfSGo?si=SacZBMI7D4QqLrqM",
+    }
 
     @staticmethod
     def get_implementation_by_description(implementation_description: str) -> "AiImplementation":

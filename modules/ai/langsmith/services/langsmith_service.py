@@ -6,14 +6,19 @@ from langsmith import utils
 
 class LangSmithService:
     @staticmethod
-    def init_service() -> bool:
+    def init_service(
+        langsmith_api_key: str = configs.LANGSMITH_API_KEY,
+        langsmith_tracing: bool = configs.LANGSMITH_TRACING,
+        langsmith_endpoint: str = configs.LANGSMITH_ENDPOINT,
+        langsmith_project: str = configs.LANGSMITH_PROJECT_TEST_LANGSMITH,
+    ) -> bool:
         """
         Initialize the language service.
         """
-        os.environ["LANGSMITH_API_KEY"] = configs.LANGSMITH_API_KEY
-        os.environ["LANGSMITH_TRACING"] = str(configs.LANGSMITH_TRACING).lower()
-        os.environ["LANGSMITH_ENDPOINT"] = configs.LANGSMITH_ENDPOINT
-        os.environ["LANGSMITH_PROJECT"] = configs.LANGSMITH_PROJECT
+        os.environ["LANGSMITH_API_KEY"] = langsmith_api_key
+        os.environ["LANGSMITH_TRACING"] = str(langsmith_tracing).lower()
+        os.environ["LANGSMITH_ENDPOINT"] = langsmith_endpoint
+        os.environ["LANGSMITH_PROJECT"] = langsmith_project
         load_dotenv(override=True)
 
         is_properly_initialized = utils.tracing_is_enabled()
