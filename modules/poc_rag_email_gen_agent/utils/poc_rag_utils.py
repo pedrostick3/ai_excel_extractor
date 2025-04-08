@@ -1,6 +1,5 @@
 import email
 import logging
-from modules.ai.agents.vectordb_embeddings_agent.utils.vectordb_embeddings_loader_utils import VectordbEmbeddingsLoaderUtils
 
 class PoCRagUtils:
     @staticmethod

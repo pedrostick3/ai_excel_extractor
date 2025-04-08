@@ -58,4 +58,13 @@ PINECONE_INDEX_NAME = "test-index"
 LANGSMITH_TRACING=True
 LANGSMITH_ENDPOINT="https://eu.api.smith.langchain.com"
 LANGSMITH_API_KEY="<your-api-key>"
-LANGSMITH_PROJECT="test-langsmith"
+LANGSMITH_PROJECT_TEST_LANGSMITH="test-langsmith"
+LANGSMITH_PROJECT_TEST_LANGGRAPH="test-langgraph"
+LANGSMITH_PROJECT_TEST_LANGGRAPH_MULTI_AGENTS="test-langgraph-multi-agents"
+
+# Anthropic Configs (Claude AI)
+ANTHROPIC_ADMIN_KEY = "<your_key>"
+ANTHROPIC_API_KEY = "<your_key>"
+
+# Tavily Configs (Researcher AI Tool)
+TAVILY_API_KEY = "<your_key>"

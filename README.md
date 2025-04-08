@@ -32,6 +32,36 @@ OR
 .venv/Scripts/python.exe -m pip install -r requirements.txt
 ```
 
+[Install LangFlow](https://docs.langflow.org/get-started-installation) with uv (first install uv: `pip install uv`):
+
+```bash
+uv pip install langflow
+```
+OR
+```bash
+.venv/Scripts/python.exe -m uv pip install langflow
+```
+
+Run LangFlow locally:
+
+```bash	
+uv run langflow run
+```
+OR
+```bash
+.venv/Scripts/python.exe -m uv run langflow run
+```
+
+Update LangFlow locally:
+
+```bash	
+uv pip install Langflow -U
+```
+OR
+```bash
+.venv/Scripts/python.exe -m uv pip install Langflow -U
+```
+
 Run the application on F5 (run button) or:
 
 ```bash
@@ -93,6 +123,19 @@ fine_tuning_agent = ExcelGenericFinetuningAgent(
     fine_tuning_model=FINETUNING_MODEL,
 )
 ```
+
+If you encounter the following error when running the LangFlow application:
+```bash
+PermissionError: [Errno 13] Permission denied: 'C:\\Users\\pedrostick\\AppData\\Local\\langflow\\langflow\\Cache\\secret_key'
+```
+
+you can resolve it by running the following commands in your terminal:
+```bash
+rm C:/Users/pedrostick/AppData/Local/langflow/langflow/Cache/secret_key
+uv run langflow run
+```
+
+don't forget to set your Global Variables again since this method cleans them up.
 
 ### Tested Models:
 - **o1-mini**
