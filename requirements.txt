@@ -14,4 +14,4 @@ langchain_anthropic~=0.3.10
 langgraph~=0.3.18
 numexpr~=2.10.2
 matplotlib~=3.10.1
-langflow~=0.6.19
+#langflow~=0.6.19 # This should be installed via uv

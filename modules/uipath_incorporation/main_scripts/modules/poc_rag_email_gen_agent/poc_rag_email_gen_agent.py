@@ -6,7 +6,7 @@ from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from modules.ai.core.agents.vectordb_embeddings_agent.utils.vectordb_embeddings_loader_utils import VectordbEmbeddingsLoaderUtils
 from modules.logger.services.logger_service import LoggerService
 from modules.poc_rag_email_gen_agent.utils.poc_rag_utils import PoCRagUtils
-import modules.poc_rag_email_gen_agent.prompts.poc_rag_email_gen_agent_prompts as prompts
+import modules.poc_rag_email_gen_agent.poc_rag_email_gen_agent_prompts as prompts
 from modules.ai.core.agents.vectordb_embeddings_agent.vectordb_embeddings_agent import VectordbEmbeddingsAgent
 from modules.ai.core.agents.vectordb_embeddings_agent.enums.vectordb_client_service_enum import VectordbClientServiceEnum
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI

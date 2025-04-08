@@ -1,91 +1,56 @@
-Crate .venv folder for virtual environment:
+# LangChain, LangFlow and LangSmith PoCs
 
+A collection of Proof-of-Concepts demonstrating integrations with LangChain, LangFlow, and LangSmith.
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.11.8 (`python --version` to verify)
+
+### Virtual Environment Setup
 ```bash
-python -m venv .venv
+# Create virtual environment
+python -m venv .venv        # Windows/Linux
+python3.9 -m venv .venv     # Specific Python version
+
+# Activate environment
+source .venv/Scripts/activate  # Bash (Windows/Linux)
+.venv/Scripts/activate         # CMD/PowerShell
 ```
-OR
-```bash
-python3.9 -m venv .venv
-```
 
-Activate virtual environment:
-
+### Installation
 ```bash
-source .venv/Scripts/activate
-```
-OR
-```bash
-.venv/Scripts/activate
-```
-
-Install dependencies:
-
-```bash
+# Install dependencies
 pip install -r requirements.txt
-```
-OR
-```bash
-python3.9 -m pip install -r requirements.txt
-```
-OR
-```bash
-.venv/Scripts/python.exe -m pip install -r requirements.txt
-```
+python3.9 -m pip install -r requirements.txt        # Specific Python version
+.venv/Scripts/python.exe -m pip install -r requirements.txt  # Direct path
 
-[Install LangFlow](https://docs.langflow.org/get-started-installation) with uv (first install uv: `pip install uv`):
-
-```bash
+# Install LangFlow (requires uv)
+pip install uv
 uv pip install langflow
 ```
-OR
+
+## ⚙️ LangFlow Management
 ```bash
-.venv/Scripts/python.exe -m uv pip install langflow
-```
-
-Run LangFlow locally:
-
-```bash	
+# Run LangFlow
 uv run langflow run
-```
-OR
-```bash
-.venv/Scripts/python.exe -m uv run langflow run
-```
+.venv/Scripts/python.exe -m uv run langflow run  # Direct path
 
-Update LangFlow locally:
-
-```bash	
+# Update LangFlow
 uv pip install Langflow -U
-```
-OR
-```bash
 .venv/Scripts/python.exe -m uv pip install Langflow -U
 ```
 
-Run the application on F5 (run button) or:
-
+## 🖥️ Running the Application
 ```bash
-python main.py
-```
-OR
-```bash
-python3.9 main.py
-```
-OR
-```bash
-.venv/Scripts/python.exe main.py
+python main.py               # Standard
+python3.9 main.py            # Specific Python version
+.venv/Scripts/python.exe main.py  # Direct path
 ```
 
-Check available OpenAI models:
-```python
-import openai
-openai.api_key = "OPENAI_API_KEY"
+## 🤖 Fine-Tuning Models
 
-models=openai.models.list()
-print(f"Available Models: {models}")
-```
-
-Create a fine-tuning model via API:
+### Create Fine-Tuning Model
 ```python
 from modules.ai.services.openai_ai_service import OpenAiAiService
 from modules.ai.fine_tuning_agents.excel_generic_agent.excel_generic_fine_tuning_agent import ExcelGenericFinetuningAgent
@@ -98,11 +63,8 @@ ExcelGenericFinetuningAgent(
 )
 ```
 
-Delete a fine-tuning model via API:
+### Delete Fine-Tuning Model
 ```python
-from modules.ai.services.openai_ai_service import OpenAiAiService
-from modules.ai.fine_tuning_agents.excel_generic_agent.excel_generic_fine_tuning_agent import ExcelGenericFinetuningAgent
-
 ExcelGenericFinetuningAgent(
     ai_service=OpenAiAiService(),
     base_model=FINETUNING_BASE_MODEL,
@@ -112,11 +74,8 @@ ExcelGenericFinetuningAgent(
 )
 ```
 
-Use a fine-tuning model via API:
+### Use Fine-Tuning Model
 ```python
-from modules.ai.services.openai_ai_service import OpenAiAiService
-from modules.ai.fine_tuning_agents.excel_generic_agent.excel_generic_fine_tuning_agent import ExcelGenericFinetuningAgent
-
 fine_tuning_agent = ExcelGenericFinetuningAgent(
     ai_service=OpenAiAiService(),
     base_model=FINETUNING_BASE_MODEL,
@@ -124,44 +83,52 @@ fine_tuning_agent = ExcelGenericFinetuningAgent(
 )
 ```
 
-If you encounter the following error when running the LangFlow application:
-```bash
-PermissionError: [Errno 13] Permission denied: 'C:\\Users\\pedrostick\\AppData\\Local\\langflow\\langflow\\Cache\\secret_key'
+## 🔍 Model Management
+```python
+# List available OpenAI models
+import openai
+openai.api_key = "OPENAI_API_KEY"
+print(f"Available Models: {openai.models.list()}")
 ```
 
-you can resolve it by running the following commands in your terminal:
+## 🛠️ Troubleshooting
+
+### Permission Error Fix
 ```bash
 rm C:/Users/pedrostick/AppData/Local/langflow/langflow/Cache/secret_key
 uv run langflow run
 ```
+**Note:** This will reset your LangFlow Global Variables.
 
-don't forget to set your Global Variables again since this method cleans them up.
+## 📊 Models & Prompts
 
-### Tested Models:
-- **o1-mini**
-- **text-embedding-3-small (for embeddings)**
-- **gpt-4o-mini (most used since it's the best option for this PoC comparing cost & quality)**
+### Tested Models
+- **`o1-mini`**
+- **`text-embedding-3-small`** (Embeddings)
+- **`gpt-4o-mini`** (Primary - best cost/quality balance)
 
-### Agent Prompts:
-- **PoC4**: modules/poc4/poc4_prompts.py
+### Agent Prompts
+- **PoC4 Prompts**: `modules/poc4/poc4_prompts.py`
+- **PoC_RAG Prompts**: `modules/poc_rag_email_gen_agent/poc_rag_email_gen_agent_prompts.py`
 
-### AI Agents, Services & Utils:
-- **PandasDataframeAgent**: modules/ai/agents/pandas_dataframe_agent/pandas_dataframe_agent.py
-- **VectordbEmbeddingsAgent**: modules/ai/agents/vectordb_embeddings_agent/vectordb_embeddings_agent.py
-- **OpenAiAiService**: modules/ai/services/openai_ai_service.py
-- **TokenUtils**: modules/ai/utils/token_utils.py
+## 🗂️ Project Structure
 
-### Excel Services:
-- **ExcelService**: modules/excel/services/excel_service.py
+### Core Modules
+- **`ai`**: AI integrations and services
+  - Agents: `PandasDataframeAgent`, `VectordbEmbeddingsAgent`
+  - LangChain Agents: `LangChainAgent`
+  - LangGraph Agents: `LangGraphAgentWithWeatherTool`, `LangGraphMultiAgents`
+  - LangFlow: `PoC_RAG_LangFlow_project`, `PoC4_LangFlow_project` and its components
+  - LangSmith: `LangSmithService`
+- **`excel`**: Excel processing
+  - Service: `ExcelService`
+- **`logger`**: Logging infrastructure
+  - Service: `LoggerService`
 
-### Logger Services:
-- **LoggerService**: modules/logger/services/logger_service.py
+### Integration Module
+- **`uipath_incorporation`**: UiPath integration project
 
-### Python Project Modules:
-- **ai**: Module responsible for handling everything related to AI;
-- **excel**: Module responsible for processing excel files;
-- **logger**: Module responsible for logging;
-- **uipath_incorporation**: Independent module developed to test the [incorporation](https://youtu.be/Zar8wrhT0Dk?si=cCyvklLRAEGq7eOU) of the python project into UiPath Activities;
-
-### Python version used:
-- **Python 3.9.13** - you can check it by running `python --version` in your terminal
+## 🔗 Resources
+- Dependencies: `requirements.txt`
+- LangFlow documentation: [https://docs.langflow.org](https://docs.langflow.org)
+- How to integrate python scripts in UiPath: [YouTube Video](https://youtu.be/Zar8wrhT0Dk?si=cCyvklLRAEGq7eOU)
