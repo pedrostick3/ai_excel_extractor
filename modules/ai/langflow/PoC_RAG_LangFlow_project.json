@@ -564,6 +564,34 @@
         "sourceHandle": "{œdataTypeœ:œChatInputœ,œidœ:œChatInput-6a3YYœ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}",
         "target": "Prompt-NMmrf",
         "targetHandle": "{œfieldNameœ:œinput_textœ,œidœ:œPrompt-NMmrfœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
+      },
+      {
+        "animated": false,
+        "className": "",
+        "data": {
+          "sourceHandle": {
+            "dataType": "ChatInput",
+            "id": "ChatInput-6a3YY",
+            "name": "message",
+            "output_types": [
+              "Message"
+            ]
+          },
+          "targetHandle": {
+            "fieldName": "original_email",
+            "id": "Prompt-i825J",
+            "inputTypes": [
+              "Message"
+            ],
+            "type": "str"
+          }
+        },
+        "id": "xy-edge__ChatInput-6a3YY{œdataTypeœ:œChatInputœ,œidœ:œChatInput-6a3YYœ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}-Prompt-i825J{œfieldNameœ:œoriginal_emailœ,œidœ:œPrompt-i825Jœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}",
+        "selected": false,
+        "source": "ChatInput-6a3YY",
+        "sourceHandle": "{œdataTypeœ:œChatInputœ,œidœ:œChatInput-6a3YYœ,œnameœ:œmessageœ,œoutput_typesœ:[œMessageœ]}",
+        "target": "Prompt-i825J",
+        "targetHandle": "{œfieldNameœ:œoriginal_emailœ,œidœ:œPrompt-i825Jœ,œinputTypesœ:[œMessageœ],œtypeœ:œstrœ}"
       }
     ],
     "nodes": [
@@ -5706,9 +5734,9 @@
       }
     ],
     "viewport": {
-      "x": -2819.094165667902,
-      "y": -377.98981947433754,
-      "zoom": 0.5278031643091594
+      "x": -2326.574786009422,
+      "y": -4.046135949257518,
+      "zoom": 0.34819863943900614
     }
   },
   "description": "Proof of Concept to responde to the last email received, accordingly to the context of the previous emails in the respective thread.",
@@ -5723,7 +5751,7 @@
   "locked": false,
   "name": "PoC_RAG",
   "tags": [],
-  "updated_at": "2025-04-08T11:29:19+00:00",
+  "updated_at": "2025-04-08T13:44:13+00:00",
   "user_id": "9096f8d4-061a-4a89-b519-6cb49a845600",
   "webhook": false
 }
