@@ -4,6 +4,7 @@ from typing import Dict
 
 class TokenUtils:
     OPENAI_MODEL_TOKEN_LIMITS: Dict[str, int] = {
+        "gpt-4.1-nano-2025-04-14": 1047576,
         "o1-preview": 128000,
         "o1-mini": 128000,
         "gpt-4o": 128000,

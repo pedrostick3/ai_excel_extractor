@@ -232,6 +232,10 @@ def testRunBothAgents(
     ],
     output_folder_path: str = "./assets/docs_output",
 ) -> str:
+    """
+    PoC_3 - Run the Excel AI Agent (the one that makes the file modifications) + Email Gen Agent.
+    Objective: (Categorize & Modify Excel files) + (Respond to the email by attaching the processed files and categorization info).
+    """
     to_return = {"processed_files": []}
     for file_path in files_paths:
         file_result = runExcelAiAgentWith(
@@ -322,6 +326,10 @@ def runExcelExtractionAgentWithPoC4EmailGenAgent(
     output_folder_path: str = "./assets/docs_output",
     output_file_name: str = "mestre dados_finais.xlsx",
 ) -> dict:
+    """
+    PoC_4 - Run the Excel Extraction Agent + Email Gen Agent.
+    Objective: (Extract data from Excel files) + (Respond to the email by attaching the extracted data info).
+    """
     to_return = {}
 
     to_return["extracted_files_info"] = PoC4Implementation.run(
@@ -360,6 +368,10 @@ def runRagEmailGenAgent(
         #"./assets/docs_input/emails/uipath_extracted_emls/RE Extract Data20250314_155113.eml",
     ],
 ) -> dict:
+    """
+    PoC_RAG - Run the RAG Email Gen Agent.
+    Objective: (Respond to Questions about email threads with attachments).
+    """
     #from langchain_community.document_loaders import WebBaseLoader
     #inspire_web_docs = WebBaseLoader(["https://inspireit.pt/pt/"], encoding='utf-8-sig').load_and_split()
     # Question = "Who is InspireIT? (get it's contacts)"

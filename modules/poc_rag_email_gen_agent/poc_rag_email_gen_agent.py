@@ -93,7 +93,7 @@ class PoCRagEmailGenAgent:
             most_recent_email_body=most_recent_email_body,
             override_questions=override_questions,
         )
-        logging.info(f"#### Finished processing received email in {time.time() - start_time:.2f} seconds : {result["email_body"]} ####")
+        logging.info(f"#### Finished processing received email in {time.time() - start_time:.2f} seconds : {result['email_body']} ####")
 
         vectordb_agent.embeddings_vector_llm.delete_collection() # Delete old vectors
 
