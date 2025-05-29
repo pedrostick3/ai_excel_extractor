@@ -5,7 +5,7 @@ A collection of Proof-of-Concepts demonstrating integrations with LangChain, Lan
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.11.8 (`python --version` to verify)
+- Python 3.11.8 (`python --version` to verify the actual version and `py -0p` to [check your installed versions](https://stackoverflow.com/a/70233933/16451258))
 
 ### Virtual Environment Setup
 ```bash
