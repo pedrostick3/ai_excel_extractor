@@ -41,6 +41,16 @@ uv pip install Langflow -U
 .venv/Scripts/python.exe -m uv pip install Langflow -U
 ```
 
+### Possible Issues
+- If you encounter a `PermissionError` related to `secret_key`, you can reset it:
+```bash
+Remove-Item "$Env:LOCALAPPDATA\langflow\langflow\Cache\secret_key"
+```
+- Then restart LangFlow:
+```bash
+uv run langflow run
+```
+
 ## 🖥️ Running the Application
 ```bash
 python main.py               # Standard
