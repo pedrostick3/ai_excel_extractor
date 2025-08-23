@@ -25,24 +25,38 @@ pip install -r requirements.txt
 python3.9 -m pip install -r requirements.txt        # Specific Python version
 .venv/Scripts/python.exe -m pip install -r requirements.txt  # Direct path
 
-# Install LangFlow (requires uv)
+# Install LangFlow (via uv)
 pip install uv
 uv pip install langflow
+# Install LangFlow (via docker)
+docker run --name langflow -p 7860:7860 langflowai/langflow:latest
+# Install LangFlow (via docker compose)
+cd C:\Users\pedrostick\Documents\GitKraken\ai_excel_extractor\modules\ai\langflow
+docker compose up
 ```
 
 ## ⚙️ LangFlow Management
 ```bash
-# Run LangFlow
+# Run LangFlow (via uv)
 uv run langflow run
 .venv/Scripts/python.exe -m uv run langflow run  # Direct path
 
-# Update LangFlow
+# Update LangFlow (via uv)
 uv pip install Langflow -U
 .venv/Scripts/python.exe -m uv pip install Langflow -U
 ```
 
+### Documentation and Links
+- [LangFlow Docs](https://docs.langflow.org/get-started-installation);
+- [LangFlow Docker installation](https://github.com/langflow-ai/langflow/tree/main/docker_example);
+
+Issues reported to LangFlow GitHub repository:
+- [Cannot run local Langflow](https://github.com/langflow-ai/langflow/issues/7474);
+- [Bug when having multiple Loop Components](https://github.com/langflow-ai/langflow/issues/7478);
+- [Bug when using multiple 'If-Else' components](https://github.com/langflow-ai/langflow/issues/6216);
+
 ### Possible Issues
-- If you encounter a `PermissionError` related to `secret_key`, you can reset it:
+- When running LangFlow via `uv`, if you encounter a `PermissionError` related to `secret_key`, you can reset it:
 ```bash
 Remove-Item "$Env:LOCALAPPDATA\langflow\langflow\Cache\secret_key"
 ```

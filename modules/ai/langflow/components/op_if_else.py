@@ -74,7 +74,7 @@ class ConditionalRouterComponent(Component):
         DropdownInput(
             name="default_route",
             display_name="Default Route",
-            options=["true_result", "false_result"],
+            options=["true_result", "false_result", "empty_input_result"],
             info="The default route to take when max iterations are reached.",
             value="false_result",
             advanced=True,
@@ -84,7 +84,7 @@ class ConditionalRouterComponent(Component):
     outputs = [
         Output(display_name="True", name="true_result", method="true_response"),
         Output(display_name="False", name="false_result", method="false_response"),
-        Output(display_name="Empty Input", name="empty_input", method="empty_response"),
+        Output(display_name="Empty Input", name="empty_input_result", method="empty_response"),
     ]
 
     def _pre_run_setup(self):
@@ -123,35 +123,60 @@ class ConditionalRouterComponent(Component):
                 route_to_stop = "true_result" if route_to_stop == "false_result" else "false_result"
             self.stop(route_to_stop)
 
+    def update_build_config(self, build_config: dict, field_value: str, field_name: str | None = None) -> dict:
+        if field_name == "operator":
+            if field_value == "regex":
+                build_config.pop("case_sensitive", None)
+
+            # Ensure case_sensitive is present for all other operators
+            elif "case_sensitive" not in build_config:
+                case_sensitive_input = next((input_field for input_field in self.inputs if input_field.name == "case_sensitive"), None)
+                if case_sensitive_input:
+                    build_config["case_sensitive"] = case_sensitive_input.to_dict()
+        return build_config
+    
     def true_response(self) -> Message:
         result = self._evaluate_condition(self.input_text, self.match_text, self.operator, case_sensitive=self.case_sensitive)
         
         if not result:
+            self._iterate_and_stop_once("true_result")
             return Message()
         
-        if result and self.pass_message_on_true:
-            return Message(text=self.pass_message_on_true)
+        if self.pass_message_on_true:
+            self.status = self.pass_message_on_true
+        else:
+            self.status = self.message if self.message else Message(text="Condition met but no message provided.")
         
-        self._iterate_and_stop_once("true_result")
-        return Message(text="Condition met but no message provided.")
+        self._iterate_and_stop_once("false_result")
+        self._iterate_and_stop_once("empty_input_result")
+        return self.status
 
     def false_response(self) -> Message:
         result = self._evaluate_condition(self.input_text, self.match_text, self.operator, case_sensitive=self.case_sensitive)
 
         if result:
+            self._iterate_and_stop_once("false_result")
             return Message()
         
-        if not result and self.pass_message_on_false:
-            return Message(text=self.pass_message_on_false)
+        if self.pass_message_on_false:
+            self.status = self.pass_message_on_false
+        else:
+            self.status = self.message if self.message else Message(text="Condition met but no message provided.")
         
-        self._iterate_and_stop_once("false_result")
-        return Message(text="Condition not met but no message provided.")
+        self._iterate_and_stop_once("true_result")
+        self._iterate_and_stop_once("empty_input_result")
+        return self.status
     
     def empty_response(self) -> Message:
         if self.input_text.strip():
+            self._iterate_and_stop_once("empty_input_result")
             return Message()
         
         if self.pass_message_on_empty:
-            return Message(text=self.pass_message_on_empty)
+            self.status = self.pass_message_on_empty
+        else:
+            self.status = self.message if self.message else Message(text="Input text is empty but no message provided.")
         
-        return Message(text="Input text is empty but no message provided.")
+        self._iterate_and_stop_once("true_result")
+        self._iterate_and_stop_once("false_result")
+        return self.status
